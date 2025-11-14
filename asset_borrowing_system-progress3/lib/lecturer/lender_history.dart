@@ -31,10 +31,9 @@ class _LenderHistoryState extends State<LenderHistory> {
 
   Future<void> _loadHistory() async {
   try {
-    const lecturerId = 12; // ชั่วคราว ใช้ตรง ๆ ก่อน
+    const int lecturerId = 12;
+
     final data = await ApiService.fetchApprovalHistory(lecturerId);
-//     print('DEBUG history length = ${data.length}');
-//     print('DEBUG first item = ${data.isNotEmpty ? data.first : 'none'}');
 
     setState(() {
       _history = data;
@@ -47,6 +46,7 @@ class _LenderHistoryState extends State<LenderHistory> {
     );
   }
 }
+
 
   IconData _getIconForTitle(String title) {
     String lowerTitle = title.toLowerCase();
