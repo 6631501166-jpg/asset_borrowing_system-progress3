@@ -190,31 +190,9 @@ class ApiService {
     return {'success': false, 'message': 'Not implemented'};
   }
 
-   // ===================== LECTURER HISTORY =====================
-  static Future<List<Map<String, dynamic>>> fetchApprovalHistory(
-      int lecturerId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/lecturer/history/$lecturerId'),
-        headers: {'Content-Type': 'application/json'},
-      );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.cast<Map<String, dynamic>>();
-      } else {
-        throw Exception(
-          'Failed to load lecturer history: ${response.statusCode} ${response.body}',
-        );
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  // ===================== LECTURER REQUESTS (PENDING / APPROVAL) =====================
-  static Future<List<Map<String, dynamic>>> fetchBorrowRequestsForLecturer()
-      async {
+    // ===================== LECTURER REQUESTS (คิวคำขอ) =====================
+  static Future<List<Map<String, dynamic>>> fetchBorrowRequestsForLecturer() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/lecturer/requests'),
@@ -232,7 +210,7 @@ class ApiService {
     }
   }
 
-static Future<Map<String, dynamic>> approveBorrowRequest(
+  static Future<Map<String, dynamic>> approveBorrowRequest(
   int borrowingId, {
   int? lecturerId,
   String? comment,
@@ -258,7 +236,6 @@ static Future<Map<String, dynamic>> approveBorrowRequest(
 }
 
 
-
   static Future<Map<String, dynamic>> rejectBorrowRequest(
   int borrowingId,
   String reason, {
@@ -269,8 +246,8 @@ static Future<Map<String, dynamic>> approveBorrowRequest(
       Uri.parse('$baseUrl/lecturer/reject/$borrowingId'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        if (lecturerId != null) 'lecturer_id': lecturerId,
         'reason': reason,
+        if (lecturerId != null) 'lecturer_id': lecturerId,
       }),
     );
 
@@ -285,7 +262,29 @@ static Future<Map<String, dynamic>> approveBorrowRequest(
 }
 
 
-   // ===================== LECTURER DASHBOARD =====================
+   // ===================== LECTURER HISTORY =====================
+  static Future<List<Map<String, dynamic>>> fetchApprovalHistory(
+      int lecturerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/lecturer/history/$lecturerId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception(
+          'Failed to load lecturer history: ${response.statusCode} ${response.body}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+// ===================== LECTURER DASHBOARD =====================
   static Future<Map<String, dynamic>> fetchLecturerDashboard(
       int lecturerId) async {
     try {
@@ -295,7 +294,6 @@ static Future<Map<String, dynamic>> approveBorrowRequest(
       );
 
       if (response.statusCode == 200) {
-        // backend ส่ง row เดียวเป็น object ตรง ๆ เช่น { total_assets: 5, ... }
         return jsonDecode(response.body) as Map<String, dynamic>;
       } else {
         throw Exception(
@@ -307,7 +305,7 @@ static Future<Map<String, dynamic>> approveBorrowRequest(
     }
   }
 
-  // ===================== SETTINGS =====================
+  // ===================== SETTINGS / DELETE (ยังไม่ใช้) =====================
   static Future<Map<String, dynamic>> fetchSettings() async {
     return {'success': false, 'message': 'Not implemented'};
   }
