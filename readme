@@ -1,0 +1,126 @@
+README — Asset Borrowing System (Flutter + Node.js + SQLite)
+
+ระบบนี้เป็นแอปให้ผู้ใช้ (นักศึกษา) ยืมอุปกรณ์ เช่น Macbook, iPad, Playstation ฯลฯ ผ่านแอป Flutter โดยมี Backend เป็น Node.js + Express และฐานข้อมูล SQLite
+
+🚀 1. เทคโนโลยีที่ใช้
+ส่วน	เทคโนโลยี
+Backend	Node.js + Express
+Database	SQLite
+Frontend	Flutter
+File Upload	Multer
+Password Hash	Argon2
+Communication	REST API
+📦 2. การติดตั้ง Backend
+2.1 ติดตั้ง Node.js
+
+ดาวน์โหลด:
+https://nodejs.org/
+
+ตรวจสอบว่าใช้ได้:
+
+node -v
+npm -v
+
+⚠ หากเจอ error npm.ps1 is blocked
+
+PowerShell บล็อคคำสั่ง npm
+ให้แก้ด้วย:
+
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted
+
+
+หรือใช้คำสั่ง:
+
+npm.cmd install
+npm.cmd run dev
+
+📂 3. การติดตั้ง package ของ Backend
+
+ไปยังโฟลเดอร์ backend:
+
+cd server_asset
+
+
+ติดตั้ง dependency:
+
+npm.cmd install
+
+
+ติดตั้ง nodemon (optional):
+
+npm.cmd install --save-dev nodemon
+
+🏁 4. รัน Backend Server
+
+รันแบบ hot reload:
+
+npm.cmd run dev
+
+
+หรือปกติ:
+
+node app.js
+
+
+ถ้าสำเร็จจะเห็น:
+
+🚀 Server running at http://YOUR_IP:3000
+API Base URL for Flutter: http://YOUR_IP:3000/api
+
+🗄 5. Database (SQLite)
+
+โปรเจกต์ใช้ SQLite (ไม่ต้องติดตั้ง MySQL)
+
+ไฟล์ฐานข้อมูล:
+
+asset_management.db
+
+
+ไฟล์ schema:
+
+schema.sql
+
+
+ครั้งแรกที่รัน server → ระบบ import schema อัตโนมัติ
+
+🧪 6. ทดสอบ API ผ่าน browser
+✔ หมวดหมู่
+http://YOUR_IP:3000/api/student/categories
+
+✔ สินค้าทั้งหมด
+http://YOUR_IP:3000/api/student/assets
+
+✔ Login (ต้อง POST)
+
+ใช้ Postman / Thunder Client:
+
+POST http://YOUR_IP:3000/api/login
+Body JSON:
+{
+  "email": "admin@example.com",
+  "password": "123456"
+}
+
+📱 7. ตั้งค่า Flutter ให้ต่อ Backend
+
+เปิดไฟล์:
+
+lib/services/api_service.dart
+
+
+แก้ IP เป็นของ server:
+
+static const String baseUrl = 'http://YOUR_IP:3000/api';
+
+
+ห้ามใช้ localhost เว้นแต่รัน backend ใน emulator เดียวกัน
+
+▶ 8. รัน Flutter
+รันบน Chrome
+flutter run -d chrome
+
+รันบน Android Emulator
+flutter run -d emulator-5554
+
+ให้ Flutter เลือก device
+flutter run
