@@ -69,7 +69,7 @@ class _LendRequestState extends State<LendRequest> {
   }
 
   Future<void> _handleApprove(int borrowingId, String assetName, String id) async {
-    final result = await ApiService.approveBorrowRequest(borrowingId);
+    final result = await ApiService.approveBorrowRequest(borrowingId, lecturerId: 12,);
     if (result['success']) {
       _showApproveDialog('Approved', 'Request for $assetName ($id) has been approved.');
       _fetchRequests(); // Refresh list
@@ -81,7 +81,7 @@ class _LendRequestState extends State<LendRequest> {
   Future<void> _handleReject(int borrowingId, String assetName, String id) async {
     String? reason = await _showRejectReasonDialog();
     if (reason != null && reason.isNotEmpty) {
-      final result = await ApiService.rejectBorrowRequest(borrowingId, reason);
+      final result = await ApiService.rejectBorrowRequest(borrowingId, reason, lecturerId: 12,);
       if (result['success']) {
         _showRejectDialog('Rejected', 'Request for $assetName ($id) has been rejected.');
         _fetchRequests(); // Refresh list

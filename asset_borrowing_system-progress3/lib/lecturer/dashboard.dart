@@ -2,11 +2,8 @@
 // File: lib/lecturer/dashboard.dart
 // ==========================================
 import 'package:flutter/material.dart';
-import 'package:asset_borrowing_system/lecturer/lend_request.dart';
-import 'package:asset_borrowing_system/lecturer/lender_history.dart';
 import 'package:asset_borrowing_system/services/api_service.dart';
 
-// ========== Main Dashboard Screen ==========
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
@@ -15,7 +12,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 2; // Home is selected by default
+  int _selectedIndex = 2; // Home tab
 
   Map<String, dynamic> _dashboardStats = {};
   List<Map<String, dynamic>> _availableAssets = [];
@@ -28,32 +25,36 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Future<void> _fetchDashboardData() async {
-    try {
-      final Map<String, dynamic> stats = await ApiService.fetchLecturerDashboard();
-      final List<Map<String, dynamic>> categories = await ApiService.fetchCategories();
+  try {
+    const int lecturerId = 12; // ชั่วคราว
+    final stats = await ApiService.fetchLecturerDashboard(lecturerId);
+
+      final List<Map<String, dynamic>> categories =
+          await ApiService.fetchCategories();
+
       setState(() {
         _dashboardStats = stats;
-        _availableAssets = categories.where((c) {
-          // Assume categories have 'status' or filter available; here assuming all categories shown as 'available assets'
-          // If backend provides count per category, adjust accordingly
-          return true; // Or filter based on some field if needed
-        }).toList();
+        _availableAssets = categories;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load dashboard: $e')));
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load dashboard: $e')),
+        );
+      }
     }
   }
 
   IconData _getIconForLabel(String label) {
-    String lowerLabel = label.toLowerCase();
-    if (lowerLabel.contains('macbook')) return Icons.laptop_mac;
-    if (lowerLabel.contains('ipad')) return Icons.tablet_mac;
-    if (lowerLabel.contains('playstation')) return Icons.sports_esports;
-    if (lowerLabel.contains('vr')) return Icons.vrpano_outlined;
+    final lower = label.toLowerCase();
+    if (lower.contains('macbook')) return Icons.laptop_mac;
+    if (lower.contains('ipad')) return Icons.tablet_mac;
+    if (lower.contains('playstation')) return Icons.sports_esports;
+    if (lower.contains('vr')) return Icons.vrpano_outlined;
     return Icons.device_unknown;
   }
 
@@ -70,10 +71,9 @@ class _DashboardState extends State<Dashboard> {
         Navigator.pushReplacementNamed(context, '/history');
         break;
       case 2:
-        // Home - stay on current page
+        // home
         break;
       case 3:
-        // ✅ Lecturer-only profile route (avoids student '/profile')
         Navigator.pushReplacementNamed(context, '/lecturer-profile');
         break;
     }
@@ -81,10 +81,14 @@ class _DashboardState extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    String totalAssets = _dashboardStats['total_assets']?.toString() ?? '0';
-    String available = _dashboardStats['available']?.toString() ?? '0';
-    String disabled = _dashboardStats['disabled']?.toString() ?? '0';
-    String borrowed = _dashboardStats['borrowed']?.toString() ?? '0';
+    final String totalAssets =
+        _dashboardStats['total_assets']?.toString() ?? '0';
+    final String available =
+        _dashboardStats['available']?.toString() ?? '0';
+    final String disabled =
+        _dashboardStats['disabled']?.toString() ?? '0';
+    final String borrowed =
+        _dashboardStats['borrowed']?.toString() ?? '0';
 
     return Scaffold(
       backgroundColor: const Color(0xFF0C1851),
@@ -126,7 +130,6 @@ class _DashboardState extends State<Dashboard> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Dashboard Title
                       const Center(
                         child: Text(
                           'Dashboard',
@@ -139,7 +142,7 @@ class _DashboardState extends State<Dashboard> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Stat Cards Grid
+                      // Stat cards
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -186,7 +189,6 @@ class _DashboardState extends State<Dashboard> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Available Assets Section
                       const Text(
                         'Available Assets',
                         style: TextStyle(
@@ -197,12 +199,11 @@ class _DashboardState extends State<Dashboard> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Assets List
                       Column(
                         children: List.generate(
                           (_availableAssets.length / 2).ceil(),
                           (index) {
-                            int start = index * 2;
+                            final int start = index * 2;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 24),
                               child: Row(
@@ -210,16 +211,25 @@ class _DashboardState extends State<Dashboard> {
                                   if (start < _availableAssets.length)
                                     Expanded(
                                       child: AssetItem(
-                                        icon: _getIconForLabel(_availableAssets[start]['name'] ?? 'Unknown'),
-                                        label: _availableAssets[start]['name'] ?? 'Unknown',
+                                        icon: _getIconForLabel(
+                                          _availableAssets[start]['name'] ??
+                                              'Unknown',
+                                        ),
+                                        label: _availableAssets[start]['name'] ??
+                                            'Unknown',
                                       ),
                                     ),
                                   const SizedBox(width: 40),
                                   if (start + 1 < _availableAssets.length)
                                     Expanded(
                                       child: AssetItem(
-                                        icon: _getIconForLabel(_availableAssets[start + 1]['name'] ?? 'Unknown'),
-                                        label: _availableAssets[start + 1]['name'] ?? 'Unknown',
+                                        icon: _getIconForLabel(
+                                          _availableAssets[start + 1]['name'] ??
+                                              'Unknown',
+                                        ),
+                                        label: _availableAssets[start + 1]
+                                                ['name'] ??
+                                            'Unknown',
                                       ),
                                     ),
                                 ],
@@ -246,16 +256,24 @@ class _DashboardState extends State<Dashboard> {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Assets',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_filled),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
   }
 }
 
-// ========== StatCard Widget ==========
 class StatCard extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -336,12 +354,15 @@ class StatCard extends StatelessWidget {
   }
 }
 
-// ========== AssetItem Widget ==========
 class AssetItem extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const AssetItem({super.key, required this.icon, required this.label});
+  const AssetItem({
+    super.key,
+    required this.icon,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {

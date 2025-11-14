@@ -74,6 +74,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LecturerLoginScreen(),
         '/home': (context) => const lect.Dashboard(),
         '/assets': (context) => const LecturerAssetList(),
+        '/lecturer-assets': (context) => const LecturerAssetList(),
         '/history': (context) => const LenderHistory(),
         '/requests': (context) => const LendRequest(),
         '/lecturer-profile': (context) => const LecturerProfile(),

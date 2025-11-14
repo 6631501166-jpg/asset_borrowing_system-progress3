@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:asset_borrowing_system/services/api_service.dart';
 
+
 class LenderHistory extends StatefulWidget {
   const LenderHistory({super.key});
 
@@ -11,41 +12,48 @@ class LenderHistory extends StatefulWidget {
 class _LenderHistoryState extends State<LenderHistory> {
   int _selectedIndex = 1;
 
-  List<Map<String, dynamic>> _historyItems = [];
+  List<Map<String, dynamic>> _history = [];
   bool _isLoading = true;
   String _query = '';
 
   final TextEditingController _searchController = TextEditingController();
 
-  // Assume lecturerId is obtained from auth or passed; hardcoded for demo
-  final int _lecturerId = 1; // Replace with actual lecturer ID from context/auth
+  // 👇 ใช้ uid ของ lecturer แบบ fix ไว้ก่อน
+  // ดูจาก /api/debug/users หรือจากข้อมูล login ว่า uid เป็นเลขอะไร
+  // ถ้า lecturer01@example.com = uid 13 ก็ใช้ 13 ตรงนี้
+  static const int _lecturerId = 12;
 
   @override
   void initState() {
     super.initState();
-    _fetchHistory();
+    _loadHistory();
   }
 
-  Future<void> _fetchHistory() async {
-    try {
-      final List<Map<String, dynamic>> apiHistory = await ApiService.fetchApprovalHistory(_lecturerId);
-      setState(() {
-        _historyItems = apiHistory;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load history: $e')));
-    }
+  Future<void> _loadHistory() async {
+  try {
+    const lecturerId = 12; // ชั่วคราว ใช้ตรง ๆ ก่อน
+    final data = await ApiService.fetchApprovalHistory(lecturerId);
+//     print('DEBUG history length = ${data.length}');
+//     print('DEBUG first item = ${data.isNotEmpty ? data.first : 'none'}');
+
+    setState(() {
+      _history = data;
+      _isLoading = false;
+    });
+  } catch (e) {
+    setState(() => _isLoading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to load history: $e')),
+    );
   }
+}
 
   IconData _getIconForTitle(String title) {
     String lowerTitle = title.toLowerCase();
     if (lowerTitle.contains('playstation')) return Icons.sports_esports_outlined;
     if (lowerTitle.contains('vr')) return Icons.vrpano_outlined;
     if (lowerTitle.contains('ipad')) return Icons.tablet_mac_outlined;
+    if (lowerTitle.contains('mac')) return Icons.laptop_mac_outlined;
     return Icons.device_unknown_outlined;
   }
 
@@ -59,13 +67,13 @@ class _LenderHistoryState extends State<LenderHistory> {
         Navigator.pushReplacementNamed(context, '/assets');
         break;
       case 1:
-        // Already on History page
+        // อยู่หน้า History แล้ว
         break;
       case 2:
         Navigator.pushReplacementNamed(context, '/home');
         break;
       case 3:
-        Navigator.pushReplacementNamed(context, '/profile');
+        Navigator.pushReplacementNamed(context, '/lecturer-profile');
         break;
     }
   }
@@ -78,7 +86,7 @@ class _LenderHistoryState extends State<LenderHistory> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _historyItems.where((item) {
+    final filtered = _history.where((item) {
       String title = item['asset_name'] ?? '';
       return title.toLowerCase().contains(_query.toLowerCase());
     }).toList();
@@ -88,6 +96,7 @@ class _LenderHistoryState extends State<LenderHistory> {
       body: SafeArea(
         child: Column(
           children: [
+            // ===== Header =====
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Row(
@@ -126,6 +135,8 @@ class _LenderHistoryState extends State<LenderHistory> {
               ),
             ),
             const SizedBox(height: 12),
+
+            // ===== White Panel =====
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -137,6 +148,7 @@ class _LenderHistoryState extends State<LenderHistory> {
                 ),
                 child: Column(
                   children: [
+                    // Search bar
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                       child: SizedBox(
@@ -173,34 +185,57 @@ class _LenderHistoryState extends State<LenderHistory> {
                         ),
                       ),
                     ),
+
+                    // List
                     Expanded(
                       child: _isLoading
                           ? const Center(child: CircularProgressIndicator())
                           : filtered.isEmpty
                               ? _buildEmptyState()
                               : ListView.builder(
-                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                                  padding: const EdgeInsets.fromLTRB(
+                                      16, 0, 16, 12),
                                   physics: const BouncingScrollPhysics(),
                                   itemCount: filtered.length,
                                   itemBuilder: (context, index) {
                                     final item = filtered[index];
-                                    String title = item['asset_name'] ?? 'Unknown';
-                                    String id = item['asset_id']?.toString() ?? 'Unknown';
-                                    String from = item['borrow_date'] ?? 'Unknown';
-                                    String to = item['return_date'] ?? 'Unknown';
-                                    String approvedBy = item['approved_by'] ?? 'Unknown'; // Assume field exists
-                                    String status = item['status'] ?? 'Approved';
-                                    Color statusColor = status == 'Rejected' ? Colors.red : Colors.green;
+
+                                    String title =
+                                        item['asset_name'] ?? 'Unknown';
+                                    String id = item['asset_code'] ??
+                                        item['asset_id']?.toString() ??
+                                        'Unknown';
+                                    String from =
+                                        item['borrow_date'] ?? 'Unknown';
+                                    String to =
+                                        item['return_date'] ?? 'Unknown';
+                                    String borrower =
+                                        item['borrower_name'] ?? 'Unknown';
+                                    String status =
+                                        item['status'] ?? 'Approved';
+
+                                    Color statusColor;
+                                    if (status.toLowerCase() == 'rejected') {
+                                      statusColor = Colors.red;
+                                    } else if (status.toLowerCase() ==
+                                        'returned') {
+                                      statusColor = Colors.blue;
+                                    } else {
+                                      statusColor = Colors.green;
+                                    }
+
                                     IconData icon = _getIconForTitle(title);
+
                                     return Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12),
                                       child: _buildHistoryCard(
                                         icon: icon,
                                         title: title,
                                         id: id,
                                         from: from,
                                         to: to,
-                                        approvedBy: approvedBy,
+                                        borrower: borrower,
                                         status: status,
                                         statusColor: statusColor,
                                       ),
@@ -215,6 +250,8 @@ class _LenderHistoryState extends State<LenderHistory> {
           ],
         ),
       ),
+
+      // ===== Bottom Nav =====
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -227,9 +264,18 @@ class _LenderHistoryState extends State<LenderHistory> {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Assets',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'History'),
-          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_filled),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
         ],
       ),
     );
@@ -241,7 +287,7 @@ class _LenderHistoryState extends State<LenderHistory> {
     required String id,
     required String from,
     required String to,
-    required String approvedBy,
+    required String borrower,
     required String status,
     required Color statusColor,
   }) {
@@ -307,7 +353,7 @@ class _LenderHistoryState extends State<LenderHistory> {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  'Approved by: $approvedBy',
+                  'Borrower: $borrower',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.75),
                     fontSize: 12,
