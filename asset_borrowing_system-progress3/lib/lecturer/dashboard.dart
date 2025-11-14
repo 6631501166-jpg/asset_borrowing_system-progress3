@@ -26,28 +26,29 @@ class _DashboardState extends State<Dashboard> {
 
   Future<void> _fetchDashboardData() async {
   try {
-    const int lecturerId = 12; // ชั่วคราว
-    final stats = await ApiService.fetchLecturerDashboard(lecturerId);
+    const int lecturerId = 12;
 
-      final List<Map<String, dynamic>> categories =
-          await ApiService.fetchCategories();
+    final Map<String, dynamic> stats =
+        await ApiService.fetchLecturerDashboard(lecturerId);
 
-      setState(() {
-        _dashboardStats = stats;
-        _availableAssets = categories;
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load dashboard: $e')),
-        );
-      }
-    }
+    final List<Map<String, dynamic>> categories =
+        await ApiService.fetchCategories();
+
+    setState(() {
+      _dashboardStats = stats;
+      _availableAssets = categories; // หรือจะ filter เพิ่มก็ได้
+      _isLoading = false;
+    });
+  } catch (e) {
+    setState(() {
+      _isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to load dashboard: $e')),
+    );
   }
+}
+
 
   IconData _getIconForLabel(String label) {
     final lower = label.toLowerCase();
